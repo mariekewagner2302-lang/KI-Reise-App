@@ -1,0 +1,25 @@
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: travelplanner-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: travelplanner
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+  
+  redis:
+    image: redis:7-alpine
+    container_name: travelplanner-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
