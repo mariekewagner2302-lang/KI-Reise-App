@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import cors from 'cors';
 import authRoutes from './routes/auth';
 // Umgebungsvariablen laden
 dotenv.config();
@@ -8,6 +9,12 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
+
+// CORS aktivieren
+app.use(cors({
+  origin: 'http://localhost:3001',
+  credentials: true
+}));
 
 // Middleware: JSON-Body parsen
 app.use(express.json());
