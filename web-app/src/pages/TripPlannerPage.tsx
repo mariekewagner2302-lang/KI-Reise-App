@@ -12,9 +12,11 @@ import {
   MenuItem,
   Chip,
   Stack,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { generateTripPlan } from '../services/api';
 
 const TripPlannerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ const TripPlannerPage: React.FC = () => {
     'Architektur'
   ];
 
-const handleChange = (e: any) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name as string]: value });
   };
@@ -69,11 +71,26 @@ const handleChange = (e: any) => {
 
     setLoading(true);
 
-    // Mock: Simuliere API-Call (später echtes Backend)
-    setTimeout(() => {
-      // Navigiere zur Ergebnis-Seite mit Daten
-      navigate('/trip-result', { state: formData });
-    }, 1500);
+    try {
+      // KI-Reiseplan generieren
+      const tripPlan = await generateTripPlan({
+        destination: formData.destination,
+        budget: parseInt(formData.budget),
+        duration: parseInt(formData.duration),
+        interests: formData.interests
+      });
+
+      // Navigiere mit echten KI-Daten
+      navigate('/trip-result', { state: tripPlan });
+    } catch (err: any) {
+      console.error('Planning error:', err);
+      setError(
+        err.response?.data?.detail || 
+        'Fehler beim Erstellen des Reiseplans. Bitte versuchen Sie es erneut.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,17 +101,16 @@ const handleChange = (e: any) => {
             ✈️ Neue Reise planen
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Erzählen Sie uns von Ihrer Traumreise und wir erstellen einen personalisierten Reiseplan für Sie!
+            Erzählen Sie uns von Ihrer Traumreise und unsere KI erstellt einen personalisierten Reiseplan für Sie!
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
               {error}
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Reiseziel */}
             <TextField
               fullWidth
               required
@@ -104,9 +120,9 @@ const handleChange = (e: any) => {
               onChange={handleChange}
               placeholder="z.B. Paris, Barcelona, Rom"
               margin="normal"
+              disabled={loading}
             />
 
-            {/* Budget */}
             <TextField
               fullWidth
               required
@@ -117,10 +133,11 @@ const handleChange = (e: any) => {
               onChange={handleChange}
               placeholder="z.B. 1000"
               margin="normal"
+              disabled={loading}
+              inputProps={{ min: 50, max: 50000 }}
             />
 
-            {/* Dauer */}
-            <FormControl fullWidth margin="normal" required>
+            <FormControl fullWidth margin="normal" required disabled={loading}>
               <InputLabel>Reisedauer</InputLabel>
               <Select
                 name="duration"
@@ -138,7 +155,6 @@ const handleChange = (e: any) => {
               </Select>
             </FormControl>
 
-            {/* Interessen */}
             <Box sx={{ mt: 3, mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Ihre Interessen *
@@ -148,8 +164,9 @@ const handleChange = (e: any) => {
                   <Chip
                     key={interest}
                     label={interest}
-                    onClick={() => handleInterestToggle(interest)}
+                    onClick={() => !loading && handleInterestToggle(interest)}
                     color={formData.interests.includes(interest) ? 'primary' : 'default'}
+                    disabled={loading}
                     sx={{ mb: 1 }}
                   />
                 ))}
@@ -163,14 +180,16 @@ const handleChange = (e: any) => {
               size="large"
               disabled={loading}
               sx={{ mt: 3 }}
+              startIcon={loading && <CircularProgress size={20} color="inherit" />}
             >
-              {loading ? '✨ Erstelle Reiseplan...' : '🚀 Reiseplan erstellen'}
+              {loading ? '🤖 KI erstellt Ihren Reiseplan...' : '🚀 Reiseplan erstellen'}
             </Button>
 
             <Button
               fullWidth
               variant="text"
               onClick={() => navigate('/dashboard')}
+              disabled={loading}
               sx={{ mt: 2 }}
             >
               ← Zurück zum Dashboard

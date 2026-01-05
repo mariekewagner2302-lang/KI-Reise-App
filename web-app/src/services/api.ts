@@ -51,3 +51,38 @@ export const clearAuthToken = () => {
 export const isAuthenticated = (): boolean => {
   return getAuthToken() !== null;
 };
+// Planning Service API
+const PLANNING_API = 'http://localhost:3002/api/v1';
+
+export interface TripPlanRequest {
+  destination: string;
+  budget: number;
+  duration: number;
+  interests: string[];
+}
+
+export interface Activity {
+  time: string;
+  name: string;
+  type: string;
+  cost: number;
+  description: string;
+}
+
+export interface Day {
+  day: number;
+  title: string;
+  activities: Activity[];
+}
+
+export interface TripPlan {
+  destination: string;
+  total_cost: number;
+  days: Day[];
+}
+
+// KI-Reiseplan generieren
+export const generateTripPlan = async (data: TripPlanRequest): Promise<TripPlan> => {
+  const response = await axios.post(`${PLANNING_API}/planning/generate`, data);
+  return response.data;
+};

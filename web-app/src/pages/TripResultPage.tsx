@@ -13,80 +13,48 @@ import {
   Stack
 } from '@mui/material';
 
-interface LocationState {
+interface Activity {
+  time: string;
+  name: string;
+  type: string;
+  cost: number;
+  description: string;
+}
+
+interface Day {
+  day: number;
+  title: string;
+  activities: Activity[];
+}
+
+interface TripPlan {
   destination: string;
-  budget: string;
-  duration: string;
-  interests: string[];
+  total_cost: number;
+  days: Day[];
 }
 
 const TripResultPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const formData = location.state as LocationState;
+  const tripData = location.state as TripPlan;
 
-  // Falls keine Daten, zurück zum Planer
-  if (!formData) {
+  // Fallback: Falls keine Daten vorhanden
+  if (!tripData || !tripData.days) {
     navigate('/trip-planner');
     return null;
   }
 
-  // Mock-Daten für Itinerary (später vom Backend)
-  const mockItinerary = [
-    {
-      day: 1,
-      title: 'Ankunft & Erkundung',
-      activities: [
-        { time: '10:00', name: 'Ankunft im Hotel', type: 'hotel', cost: 0 },
-        { time: '12:00', name: 'Mittagessen in lokalem Restaurant', type: 'food', cost: 25 },
-        { time: '14:00', name: `Hauptsehenswürdigkeit in ${formData.destination}`, type: 'culture', cost: 15 },
-        { time: '18:00', name: 'Stadtbummel & Shopping', type: 'shopping', cost: 50 },
-        { time: '20:00', name: 'Abendessen mit lokaler Küche', type: 'food', cost: 40 }
-      ]
-    },
-    {
-      day: 2,
-      title: 'Kultur & Geschichte',
-      activities: [
-        { time: '09:00', name: 'Frühstück im Café', type: 'food', cost: 15 },
-        { time: '10:30', name: 'Museum-Tour', type: 'culture', cost: 20 },
-        { time: '13:00', name: 'Mittagessen', type: 'food', cost: 30 },
-        { time: '15:00', name: 'Historisches Viertel besichtigen', type: 'culture', cost: 0 },
-        { time: '19:00', name: 'Dinner mit Aussicht', type: 'food', cost: 60 }
-      ]
-    },
-    {
-      day: 3,
-      title: 'Entspannung & Genuss',
-      activities: [
-        { time: '10:00', name: 'Brunch in trendigem Café', type: 'food', cost: 35 },
-        { time: '12:30', name: 'Park-Spaziergang', type: 'nature', cost: 0 },
-        { time: '15:00', name: 'Lokaler Markt', type: 'shopping', cost: 40 },
-        { time: '18:00', name: 'Sunset-Spot besuchen', type: 'nature', cost: 0 },
-        { time: '20:00', name: 'Abschiedsessen', type: 'food', cost: 50 }
-      ]
-    }
-  ];
-
-  // Nur so viele Tage wie gewählt
-  const filteredItinerary = mockItinerary.slice(0, parseInt(formData.duration));
-
-  // Gesamtkosten berechnen
-  const totalCost = filteredItinerary.reduce((sum, day) => 
-    sum + day.activities.reduce((daySum, activity) => daySum + activity.cost, 0), 
-    0
-  );
-
-  const getActivityIcon = (type: string) => {
-    const icons: { [key: string]: string } = {
+  const getActivityIcon = (type: string): string => {
+    const icons: Record<string, string> = {
       hotel: '🏨',
       food: '🍽️',
       culture: '🏛️',
       shopping: '🛍️',
       nature: '🌳',
-      default: '📍'
+      entertainment: '🎭',
+      transport: '🚇'
     };
-    return icons[type] || icons.default;
+    return icons[type] || '📍';
   };
 
   return (
@@ -95,22 +63,26 @@ const TripResultPage: React.FC = () => {
         {/* Header */}
         <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
           <Typography variant="h4" gutterBottom>
-            ✨ Ihr Reiseplan für {formData.destination}
+            ✨ Ihr KI-generierter Reiseplan für {tripData.destination}
           </Typography>
           <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
-            <Chip label={`${formData.duration} ${formData.duration === '1' ? 'Tag' : 'Tage'}`} color="primary" />
-            <Chip label={`Budget: ${formData.budget}€`} color="secondary" />
-            <Chip label={`Kosten: ${totalCost}€`} color={totalCost > parseInt(formData.budget) ? 'error' : 'success'} />
+            <Chip 
+              label={`${tripData.days.length} ${tripData.days.length === 1 ? 'Tag' : 'Tage'}`} 
+              color="primary" 
+            />
+            <Chip 
+              label={`Gesamtkosten: ${tripData.total_cost}€`} 
+              color="secondary" 
+            />
+            <Chip 
+              label="🤖 Von KI erstellt" 
+              variant="outlined" 
+            />
           </Stack>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Interessen: {formData.interests.join(', ')}
-            </Typography>
-          </Box>
         </Paper>
 
-        {/* Itinerary */}
-        {filteredItinerary.map((day) => (
+        {/* Itinerary - Tag für Tag */}
+        {tripData.days.map((day) => (
           <Paper key={day.day} elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom color="primary">
               Tag {day.day}: {day.title}
@@ -120,14 +92,27 @@ const TripResultPage: React.FC = () => {
             {day.activities.map((activity, idx) => (
               <Card key={idx} variant="outlined" sx={{ mb: 2 }}>
                 <CardContent>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Typography variant="h6" color="text.secondary" sx={{ minWidth: 60 }}>
+                  <Stack direction="row" spacing={2} alignItems="flex-start">
+                    <Typography 
+                      variant="h6" 
+                      color="text.secondary" 
+                      sx={{ minWidth: 70, flexShrink: 0 }}
+                    >
                       {activity.time}
                     </Typography>
-                    <Typography variant="h6">
-                      {getActivityIcon(activity.type)} {activity.name}
-                    </Typography>
-                    <Typography variant="body1" color="primary" sx={{ ml: 'auto' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {getActivityIcon(activity.type)} {activity.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {activity.description}
+                      </Typography>
+                    </Box>
+                    <Typography 
+                      variant="body1" 
+                      color="primary" 
+                      sx={{ fontWeight: 'bold', flexShrink: 0 }}
+                    >
                       {activity.cost > 0 ? `${activity.cost}€` : 'Kostenlos'}
                     </Typography>
                   </Stack>
@@ -135,7 +120,11 @@ const TripResultPage: React.FC = () => {
               </Card>
             ))}
 
-            <Typography variant="body2" align="right" sx={{ mt: 1, fontWeight: 'bold' }}>
+            <Typography 
+              variant="body2" 
+              align="right" 
+              sx={{ mt: 1, fontWeight: 'bold', color: 'primary.main' }}
+            >
               Tageskosten: {day.activities.reduce((sum, a) => sum + a.cost, 0)}€
             </Typography>
           </Paper>
@@ -147,6 +136,7 @@ const TripResultPage: React.FC = () => {
             variant="contained"
             onClick={() => navigate('/trip-planner')}
             fullWidth
+            size="large"
           >
             🔄 Neue Reise planen
           </Button>
@@ -154,6 +144,7 @@ const TripResultPage: React.FC = () => {
             variant="outlined"
             onClick={() => navigate('/dashboard')}
             fullWidth
+            size="large"
           >
             ← Zurück zum Dashboard
           </Button>
