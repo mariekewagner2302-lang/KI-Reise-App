@@ -34,6 +34,9 @@ const DashboardPage: React.FC = () => {
         <Paper elevation={3} sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
             <Typography variant="h4">Dashboard</Typography>
+            <Button variant="contained" onClick={() => navigate('/trip-planner')}>
+              ✈️ Neue Reise planen
+            </Button>
             <Button variant="outlined" color="error" onClick={handleLogout}>
               Abmelden
             </Button>
