@@ -1,12 +1,37 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = 'https://travelplanner-user.onrender.com/api/v1';
+const PLANNING_API = 'https://travelplanner-planning.onrender.com/api/v1';
+
+export const saveAuthToken = (token: string): void => {
+  localStorage.setItem('token', token);
+};
+
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('token');
+};
+
+export const clearAuthToken = (): void => {
+  localStorage.removeItem('token');
+};
+
+export const isAuthenticated = (): boolean => {
+  return !!getAuthToken();
+};
+
+axios.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export interface SignupData {
   email: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface LoginData {
@@ -14,45 +39,28 @@ export interface LoginData {
   password: string;
 }
 
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    tier: string;
-  };
-  accessToken: string;
-  refreshToken: string;
-}
-
-export const signup = async (data: SignupData): Promise<AuthResponse> => {
+export const signup = async (data: SignupData) => {
   const response = await axios.post(`${API_BASE_URL}/auth/signup`, data);
+  if (response.data.token) {
+    saveAuthToken(response.data.token);
+    localStorage.setItem('userEmail', data.email);
+  }
   return response.data;
 };
 
-export const login = async (data: LoginData): Promise<AuthResponse> => {
+export const login = async (data: LoginData) => {
   const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
+  if (response.data.token) {
+    saveAuthToken(response.data.token);
+    localStorage.setItem('userEmail', data.email);
+  }
   return response.data;
 };
 
-export const saveAuthToken = (token: string) => {
-  localStorage.setItem('accessToken', token);
+export const logout = (): void => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userEmail');
 };
-
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('accessToken');
-};
-
-export const clearAuthToken = () => {
-  localStorage.removeItem('accessToken');
-};
-
-export const isAuthenticated = (): boolean => {
-  return getAuthToken() !== null;
-};
-// Planning Service API
-const PLANNING_API = 'http://localhost:3002/api/v1';
 
 export interface TripPlanRequest {
   destination: string;
@@ -81,14 +89,7 @@ export interface TripPlan {
   days: Day[];
 }
 
-// KI-Reiseplan generieren
 export const generateTripPlan = async (data: TripPlanRequest): Promise<TripPlan> => {
   const response = await axios.post(`${PLANNING_API}/planning/generate`, data);
   return response.data;
-};
-
-// Logout
-export const logout = (): void => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('userEmail');
 };
