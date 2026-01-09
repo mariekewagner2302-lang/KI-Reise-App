@@ -1,64 +1,9 @@
-# Umgebungsvariablen (Passwörter etc.)
-.env
-.env.local
-
-# Node.js
 node_modules/
-dist/
+.env
 *.log
-
-# Python
+dist/
+build/
 venv/
 __pycache__/
 *.pyc
-
-# IDEs
-.vscode/
-.idea/
-
-# Betriebssystem
 .DS_Store
-Thumbs.db
-```
-
-**Einfügen:**
-- Drücken Sie `Cmd + V` (oder Rechtsklick → Paste)
-
----
-
-## 💾 SPEICHERN IN NANO
-
-**Schritt 1:** Drücken Sie `Ctrl + O` (Buchstabe O wie Oscar)
-
-**Sie sehen unten:**
-```
-File Name to Write: .gitignore
-```
-
-**Schritt 2:** Drücken Sie `Enter`
-
-**Sie sehen:**
-```
-[ Wrote 17 lines ]
-Schritt 3: Drücken Sie Ctrl + X (beendet nano)
-Sie sind wieder im normalen Terminal!
-
-Schritt 1.9: README.md erstellen
-bashnano README.md
-Enter drücken
-Kopieren und einfügen:
-markdown# KI-Reise-App (TravelPlanner)
-
-AI-powered travel planning platform.
-
-## Tech Stack
-- Backend: Node.js, Python (FastAPI)
-- Frontend: React + TypeScript
-- Database: PostgreSQL
-- Cache: Redis
-
-## Entwicklerin
-Marieke Wagner
-
-## Setup
-Siehe docs/SETUP.md
