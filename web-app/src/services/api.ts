@@ -86,3 +86,9 @@ export const generateTripPlan = async (data: TripPlanRequest): Promise<TripPlan>
   const response = await axios.post(`${PLANNING_API}/planning/generate`, data);
   return response.data;
 };
+
+// Logout
+export const logout = (): void => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userEmail');
+};
