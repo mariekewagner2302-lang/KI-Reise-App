@@ -8,10 +8,10 @@ import authRoutes from './routes/auth';
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient(); // ⭐ EXPORT hinzugefügt!
 const PORT = process.env.PORT || 3000;
 
-// CORS aktivieren - MIT ENV VARIABLE! ⭐
+// CORS aktivieren - MIT ENV VARIABLE!
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
   credentials: true
