@@ -41,7 +41,7 @@ const LandingPage: React.FC = () => {
           <Typography variant="h5" sx={{ color: '#8B7B6A' }} paragraph>
             Ihre KI-powered Reiseplanung
           </Typography>
-          <Typography variant="body1" sx={{ color: '#8B7B6A' }} paragraph sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
+          <Typography variant="body1" paragraph sx={{ color: '#8B7B6A', maxWidth: 600, mx: 'auto', mb: 4 }}>
             Geben Sie Ihr Reiseziel, Budget und Interessen ein – unsere KI erstellt einen personalisierten Tagesplan mit echten Sehenswürdigkeiten, Restaurants und Aktivitäten.
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" gap={2}>
