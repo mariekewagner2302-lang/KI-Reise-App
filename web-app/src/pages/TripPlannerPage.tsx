@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -11,12 +12,21 @@ import {
   Select,
   MenuItem,
   Chip,
-  Stack,
-  Alert,
+  OutlinedInput,
   CircularProgress
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { generateTripPlan } from '../services/api';
+
+const INTERESTS = [
+  'Kultur & Museen',
+  'Essen & Restaurants',
+  'Natur & Outdoor',
+  'Shopping',
+  'Nachtleben',
+  'Geschichte',
+  'Strand & Meer',
+  'Sport & Aktivitäten'
+];
 
 const TripPlannerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,178 +36,169 @@ const TripPlannerPage: React.FC = () => {
     duration: '',
     interests: [] as string[]
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const availableInterests = [
-    'Kultur & Museen',
-    'Essen & Restaurants',
-    'Nachtleben',
-    'Natur & Parks',
-    'Shopping',
-    'Sport & Aktivitäten',
-    'Geschichte',
-    'Architektur'
-  ];
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name as string]: value });
-  };
-
-  const handleInterestToggle = (interest: string) => {
-    setFormData(prev => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    // Validierung
-    if (!formData.destination || !formData.budget || !formData.duration) {
-      setError('Bitte füllen Sie alle Pflichtfelder aus');
-      return;
-    }
-
-    if (formData.interests.length === 0) {
-      setError('Bitte wählen Sie mindestens ein Interesse aus');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // KI-Reiseplan generieren
       const tripPlan = await generateTripPlan({
         destination: formData.destination,
-        budget: parseInt(formData.budget),
-        duration: parseInt(formData.duration),
+        budget: Number(formData.budget),
+        duration: Number(formData.duration),
         interests: formData.interests
       });
 
-      // Navigiere mit echten KI-Daten
-      navigate('/trip-result', { state: tripPlan });
-    } catch (err: any) {
-      console.error('Planning error:', err);
-      setError(
-        err.response?.data?.detail || 
-        'Fehler beim Erstellen des Reiseplans. Bitte versuchen Sie es erneut.'
-      );
-    } finally {
+      navigate('/trip-result', { state: { tripPlan } });
+    } catch (error) {
+      console.error('Fehler beim Erstellen des Reiseplans:', error);
+      alert('Fehler beim Erstellen des Reiseplans. Bitte versuchen Sie es erneut.');
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #E8DCC4 0%, #B5C2A8 100%)',
+      py: 4
+    }}>
+      <Container maxWidth="md">
+        <Paper elevation={10} sx={{ p: 4, backgroundColor: '#FAF8F5', borderRadius: 3 }}>
+          <Typography variant="h4" gutterBottom align="center" sx={{ color: '#5A4A3A', fontWeight: 'bold', mb: 3 }}>
             ✈️ Neue Reise planen
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Erzählen Sie uns von Ihrer Traumreise und unsere KI erstellt einen personalisierten Reiseplan für Sie!
-          </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-              {error}
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              required
               label="Reiseziel"
-              name="destination"
-              value={formData.destination}
-              onChange={handleChange}
-              placeholder="z.B. Paris, Barcelona, Rom"
               margin="normal"
-              disabled={loading}
+              value={formData.destination}
+              onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+              required
+              placeholder="z.B. Paris, Barcelona, Rom"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#FFF',
+                  '&:hover fieldset': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused fieldset': { borderColor: '#D4A5A5' }
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#5A4A3A' }
+              }}
             />
 
             <TextField
               fullWidth
-              required
               label="Budget (€)"
-              name="budget"
               type="number"
-              value={formData.budget}
-              onChange={handleChange}
-              placeholder="z.B. 1000"
               margin="normal"
-              disabled={loading}
-              inputProps={{ min: 50, max: 50000 }}
+              value={formData.budget}
+              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+              required
+              placeholder="z.B. 500"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#FFF',
+                  '&:hover fieldset': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused fieldset': { borderColor: '#D4A5A5' }
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#5A4A3A' }
+              }}
             />
 
-            <FormControl fullWidth margin="normal" required disabled={loading}>
-              <InputLabel>Reisedauer</InputLabel>
+            <TextField
+              fullWidth
+              label="Dauer (Tage)"
+              type="number"
+              margin="normal"
+              value={formData.duration}
+              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+              required
+              placeholder="z.B. 3"
+              inputProps={{ min: 1, max: 14 }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#FFF',
+                  '&:hover fieldset': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused fieldset': { borderColor: '#D4A5A5' }
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#5A4A3A' }
+              }}
+            />
+
+            <FormControl fullWidth margin="normal" sx={{ mt: 2 }}>
+              <InputLabel sx={{ '&.Mui-focused': { color: '#5A4A3A' } }}>Interessen</InputLabel>
               <Select
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                label="Reisedauer"
+                multiple
+                value={formData.interests}
+                onChange={(e) => setFormData({ ...formData, interests: e.target.value as string[] })}
+                input={<OutlinedInput label="Interessen" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip 
+                        key={value} 
+                        label={value} 
+                        size="small"
+                        sx={{ 
+                          backgroundColor: '#D4A5A5',
+                          color: '#5A4A3A'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
+                sx={{
+                  backgroundColor: '#FFF',
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#D4A5A5' }
+                }}
               >
-                <MenuItem value="1">1 Tag</MenuItem>
-                <MenuItem value="2">2 Tage</MenuItem>
-                <MenuItem value="3">3 Tage</MenuItem>
-                <MenuItem value="4">4 Tage</MenuItem>
-                <MenuItem value="5">5 Tage</MenuItem>
-                <MenuItem value="7">1 Woche</MenuItem>
-                <MenuItem value="14">2 Wochen</MenuItem>
+                {INTERESTS.map((interest) => (
+                  <MenuItem key={interest} value={interest}>
+                    {interest}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
-            <Box sx={{ mt: 3, mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Ihre Interessen *
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {availableInterests.map((interest) => (
-                  <Chip
-                    key={interest}
-                    label={interest}
-                    onClick={() => !loading && handleInterestToggle(interest)}
-                    color={formData.interests.includes(interest) ? 'primary' : 'default'}
-                    disabled={loading}
-                    sx={{ mb: 1 }}
-                  />
-                ))}
-              </Stack>
-            </Box>
-
             <Button
-              fullWidth
               type="submit"
+              fullWidth
               variant="contained"
               size="large"
               disabled={loading}
-              sx={{ mt: 3 }}
-              startIcon={loading && <CircularProgress size={20} color="inherit" />}
+              sx={{ 
+                mt: 4,
+                backgroundColor: '#D4A5A5',
+                color: '#5A4A3A',
+                fontWeight: 'bold',
+                py: 1.5,
+                '&:hover': { backgroundColor: '#C49595' },
+                '&:disabled': { backgroundColor: '#E8DCC4', color: '#8B7B6A' }
+              }}
             >
-              {loading ? '🤖 KI erstellt Ihren Reiseplan...' : '🚀 Reiseplan erstellen'}
+              {loading ? (
+                <>
+                  <CircularProgress size={24} sx={{ mr: 1, color: '#8B7B6A' }} />
+                  KI erstellt Ihren Reiseplan...
+                </>
+              ) : (
+                '🚀 Reiseplan erstellen'
+              )}
             </Button>
+          </Box>
 
-            <Button
-              fullWidth
-              variant="text"
-              onClick={() => navigate('/dashboard')}
-              disabled={loading}
-              sx={{ mt: 2 }}
-            >
-              ← Zurück zum Dashboard
-            </Button>
-          </form>
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#8B7B6A' }}>
+              💡 Die KI erstellt einen personalisierten Tagesplan mit echten Orten und Preisen
+            </Typography>
+          </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

@@ -1,90 +1,130 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Box,
+  Paper,
+  Typography,
   TextField,
   Button,
-  Typography,
   Alert,
-  Paper
+  Link
 } from '@mui/material';
-import { login, saveAuthToken } from '../services/api';
+import { login } from '../services/api';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
     try {
-      const response = await login(formData);
-      saveAuthToken(response.accessToken);
+      await login(formData);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login fehlgeschlagen');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Login fehlgeschlagen');
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" align="center" gutterBottom>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #E8DCC4 0%, #D4A5A5 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      py: 4
+    }}>
+      <Container maxWidth="sm">
+        <Paper elevation={10} sx={{ p: 4, backgroundColor: '#FAF8F5', borderRadius: 3 }}>
+          <Typography variant="h4" gutterBottom align="center" sx={{ color: '#5A4A3A', fontWeight: 'bold' }}>
             Anmelden
           </Typography>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2, backgroundColor: '#f8d7da', color: '#721c24' }}>
+              {error}
+            </Alert>
+          )}
 
-          <form onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              required
               label="E-Mail"
-              name="email"
               type="email"
-              value={formData.email}
-              onChange={handleChange}
               margin="normal"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#FFF',
+                  '&:hover fieldset': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused fieldset': { borderColor: '#D4A5A5' }
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#5A4A3A' }
+              }}
             />
+
             <TextField
               fullWidth
-              required
               label="Passwort"
-              name="password"
               type="password"
-              value={formData.password}
-              onChange={handleChange}
               margin="normal"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#FFF',
+                  '&:hover fieldset': { borderColor: '#D4A5A5' },
+                  '&.Mui-focused fieldset': { borderColor: '#D4A5A5' }
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#5A4A3A' }
+              }}
             />
+
             <Button
-              fullWidth
               type="submit"
+              fullWidth
               variant="contained"
               size="large"
-              disabled={loading}
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ 
+                mt: 3,
+                backgroundColor: '#D4A5A5',
+                color: '#5A4A3A',
+                fontWeight: 'bold',
+                '&:hover': { backgroundColor: '#C49595' }
+              }}
             >
-              {loading ? 'Wird angemeldet...' : 'Anmelden'}
+              ANMELDEN
             </Button>
-            <Typography variant="body2" align="center">
-              Noch kein Konto? <Link to="/signup">Jetzt registrieren</Link>
-            </Typography>
-          </form>
+
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#8B7B6A' }}>
+                Noch kein Account?{' '}
+                <Link 
+                  onClick={() => navigate('/signup')} 
+                  sx={{ 
+                    color: '#D4A5A5', 
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  Jetzt registrieren
+                </Link>
+              </Typography>
+            </Box>
+          </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

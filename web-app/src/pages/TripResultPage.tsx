@@ -8,149 +8,186 @@ import {
   Button,
   Card,
   CardContent,
-  Divider,
   Chip,
-  Stack
+  Divider
 } from '@mui/material';
-
-interface Activity {
-  time: string;
-  name: string;
-  type: string;
-  cost: number;
-  description: string;
-}
-
-interface Day {
-  day: number;
-  title: string;
-  activities: Activity[];
-}
-
-interface TripPlan {
-  destination: string;
-  total_cost: number;
-  days: Day[];
-}
+import type { TripPlan } from '../services/api';
 
 const TripResultPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const tripData = location.state as TripPlan;
+  const tripPlan = location.state?.tripPlan as TripPlan;
 
-  // Fallback: Falls keine Daten vorhanden
-  if (!tripData || !tripData.days) {
-    navigate('/trip-planner');
-    return null;
+  if (!tripPlan) {
+    return (
+      <Container>
+        <Typography>Kein Reiseplan gefunden.</Typography>
+        <Button onClick={() => navigate('/trip-planner')}>Zurück</Button>
+      </Container>
+    );
   }
 
-  const getActivityIcon = (type: string): string => {
-    const icons: Record<string, string> = {
-      hotel: '🏨',
-      food: '🍽️',
-      culture: '🏛️',
-      shopping: '🛍️',
-      nature: '🌳',
-      entertainment: '🎭',
-      transport: '🚇'
+  const getActivityColor = (type: string) => {
+    const colors: { [key: string]: string } = {
+      'restaurant': '#D4A5A5',
+      'sightseeing': '#A8B5A0',
+      'activity': '#B8A390',
+      'museum': '#C4B5A5',
+      'default': '#E8DCC4'
     };
-    return icons[type] || '📍';
+    return colors[type.toLowerCase()] || colors.default;
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        {/* Header */}
-        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            ✨ Ihr KI-generierter Reiseplan für {tripData.destination}
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #FAF8F5 0%, #E8DCC4 100%)',
+      py: 4
+    }}>
+      <Container maxWidth="lg">
+        <Paper elevation={10} sx={{ 
+          p: 4, 
+          mb: 3, 
+          backgroundColor: '#FAF8F5',
+          borderRadius: 3,
+          border: '3px solid #D4A5A5'
+        }}>
+          <Typography variant="h4" gutterBottom sx={{ color: '#5A4A3A', fontWeight: 'bold' }}>
+            ✨ Ihr KI-generierter Reiseplan für {tripPlan.destination}
           </Typography>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
+          
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
             <Chip 
-              label={`${tripData.days.length} ${tripData.days.length === 1 ? 'Tag' : 'Tage'}`} 
-              color="primary" 
+              label={`${tripPlan.days.length} Tage`} 
+              sx={{ 
+                backgroundColor: '#D4A5A5',
+                color: '#5A4A3A',
+                fontWeight: 'bold'
+              }}
             />
             <Chip 
-              label={`Gesamtkosten: ${tripData.total_cost}€`} 
-              color="secondary" 
+              label={`Gesamtkosten: ${tripPlan.total_cost}€`} 
+              sx={{ 
+                backgroundColor: '#A8B5A0',
+                color: '#5A4A3A',
+                fontWeight: 'bold'
+              }}
             />
             <Chip 
               label="🤖 Von KI erstellt" 
-              variant="outlined" 
+              sx={{ 
+                backgroundColor: '#B8A390',
+                color: '#5A4A3A'
+              }}
             />
-          </Stack>
+          </Box>
         </Paper>
 
-        {/* Itinerary - Tag für Tag */}
-        {tripData.days.map((day) => (
-          <Paper key={day.day} elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h5" gutterBottom color="primary">
+        {tripPlan.days.map((day) => (
+          <Paper 
+            key={day.day} 
+            elevation={6} 
+            sx={{ 
+              mb: 3, 
+              p: 3,
+              backgroundColor: '#FAF8F5',
+              borderRadius: 3,
+              border: '2px solid #E8DCC4'
+            }}
+          >
+            <Typography variant="h5" gutterBottom sx={{ color: '#5A4A3A', fontWeight: 'bold' }}>
               Tag {day.day}: {day.title}
             </Typography>
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ my: 2, borderColor: '#E8DCC4' }} />
 
             {day.activities.map((activity, idx) => (
-              <Card key={idx} variant="outlined" sx={{ mb: 2 }}>
+              <Card 
+                key={idx} 
+                sx={{ 
+                  mb: 2,
+                  backgroundColor: '#FFF',
+                  border: '2px solid #E8DCC4',
+                  borderLeft: `6px solid ${getActivityColor(activity.type)}`,
+                  transition: 'transform 0.2s',
+                  '&:hover': { 
+                    transform: 'translateX(4px)',
+                    borderLeftColor: '#D4A5A5'
+                  }
+                }}
+              >
                 <CardContent>
-                  <Stack direction="row" spacing={2} alignItems="flex-start">
-                    <Typography 
-                      variant="h6" 
-                      color="text.secondary" 
-                      sx={{ minWidth: 70, flexShrink: 0 }}
-                    >
-                      {activity.time}
-                    </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6" gutterBottom>
-                        {getActivityIcon(activity.type)} {activity.name}
+                      <Typography variant="h6" sx={{ color: '#5A4A3A', fontWeight: 'bold' }}>
+                        {activity.time}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {activity.description}
+                      <Typography variant="subtitle1" sx={{ color: getActivityColor(activity.type), fontWeight: 'bold', mt: 0.5 }}>
+                        {activity.type === 'restaurant' ? '🍽️' : '🏛️'} {activity.name}
                       </Typography>
                     </Box>
-                    <Typography 
-                      variant="body1" 
-                      color="primary" 
-                      sx={{ fontWeight: 'bold', flexShrink: 0 }}
-                    >
-                      {activity.cost > 0 ? `${activity.cost}€` : 'Kostenlos'}
-                    </Typography>
-                  </Stack>
+                    <Chip 
+                      label={activity.cost === 0 ? 'Kostenlos' : `${activity.cost}€`}
+                      sx={{ 
+                        backgroundColor: activity.cost === 0 ? '#A8B5A0' : '#D4A5A5',
+                        color: '#5A4A3A',
+                        fontWeight: 'bold'
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#8B7B6A', mt: 1 }}>
+                    {activity.description}
+                  </Typography>
                 </CardContent>
               </Card>
             ))}
 
-            <Typography 
-              variant="body2" 
-              align="right" 
-              sx={{ mt: 1, fontWeight: 'bold', color: 'primary.main' }}
-            >
-              Tageskosten: {day.activities.reduce((sum, a) => sum + a.cost, 0)}€
-            </Typography>
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              backgroundColor: '#E8DCC4', 
+              borderRadius: 2,
+              textAlign: 'right'
+            }}>
+              <Typography variant="h6" sx={{ color: '#5A4A3A', fontWeight: 'bold' }}>
+                Tageskosten: {day.activities.reduce((sum, a) => sum + a.cost, 0)}€
+              </Typography>
+            </Box>
           </Paper>
         ))}
 
-        {/* Actions */}
-        <Stack direction="row" spacing={2}>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 4 }}>
           <Button
             variant="contained"
             onClick={() => navigate('/trip-planner')}
-            fullWidth
-            size="large"
+            sx={{ 
+              backgroundColor: '#D4A5A5',
+              color: '#5A4A3A',
+              fontWeight: 'bold',
+              px: 4,
+              '&:hover': { backgroundColor: '#C49595' }
+            }}
           >
-            🔄 Neue Reise planen
+            🆕 Neue Reise planen
           </Button>
           <Button
             variant="outlined"
             onClick={() => navigate('/dashboard')}
-            fullWidth
-            size="large"
+            sx={{ 
+              borderColor: '#B8A390',
+              color: '#5A4A3A',
+              fontWeight: 'bold',
+              px: 4,
+              '&:hover': { 
+                borderColor: '#A89380',
+                backgroundColor: 'rgba(184, 163, 144, 0.1)'
+              }
+            }}
           >
-            ← Zurück zum Dashboard
+            🏠 Zum Dashboard
           </Button>
-        </Stack>
-      </Box>
-    </Container>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
