@@ -316,3 +316,20 @@ GitHub: [@mariekewagner2302-lang](https://github.com/mariekewagner2302-lang)
 ---
 
 *Full-Stack AI Project entwickelt in 4 Tagen*
+
+## 🌐 Live Demo
+
+**Die App ist live deployed!**
+
+- **Frontend:** https://travelplanner-app-rj3x.onrender.com
+- **User API:** https://travelplanner-user.onrender.com
+- **Planning API:** https://travelplanner-planning.onrender.com
+
+**Testen Sie selbst:**
+1. Öffnen Sie die Frontend-URL
+2. Registrieren Sie sich
+3. Erstellen Sie einen personalisierten Reiseplan!
+
+---
+
+*Deployed on Render.com • January 2026*
